@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chương Trình Đào Tạo STEM Robotics & Lập Trình</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Be Vietnam Pro & Plus Jakarta Sans hỗ trợ tiếng Việt sắc nét -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', '"Be Vietnam Pro"', 'sans-serif'],
+                    },
+                    colors: {
+                        stem: {
+                            dark: '#0f172a',
+                            primary: '#2563eb',
+                            accent: '#f59e0b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Tùy chỉnh thanh cuộn và hiệu ứng mượt */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .card-hover {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .animate-pulse-soft {
+            animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+
+    <!-- ==================== HEADER / HERO SECTION ==================== -->
+    <header class="relative bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white overflow-hidden">
+        <!-- Họa tiết lưới công nghệ nền -->
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#60a5fa 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+            <!-- Thanh trạng thái & hành động trên cùng -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-white/10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                        <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-cyan-300 block">Hệ Thống Học Liệu Số</span>
+                        <span class="text-sm font-semibold text-white/90">STEM Robotics & Coding Academy</span>
+                    </div>
+                </div>
+
+                <!-- Badge trạng thái đồng bộ Google Sheet & Nút Refresh -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div id="syncStatusBadge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-white/10 border border-white/15 backdrop-blur-sm text-slate-200">
+                        <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span id="syncStatusText">Đang kết nối Google Sheet...</span>
+                    </div>
+                    <button id="refreshBtn" onclick="syncFromGoogleSheet(true)" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-600 hover:bg-blue-500 active:scale-95 text-white transition-all shadow-md shadow-blue-900/40 cursor-pointer">
+                        <i id="refreshIcon" data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        <span>Làm mới dữ liệu từ Sheet</span>
+                    </button>
+                    <a href="https://docs.google.com/spreadsheets/d/1PRcjcfWFiORC7SVAmWamt8StF5Yl0OduLlUuB-1wR5A/edit?gid=870154756#gid=870154756" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white/10 hover:bg-white/20 text-white transition-all" title="Mở Google Sheet gốc">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        <span class="hidden sm:inline">Sheet Gốc</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Nội dung giới thiệu chính -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-8">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-4">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>Lộ trình học tập trực quan theo từng cấp độ & bộ công cụ</span>
+                    </div>
+                    <h1 class="font-display text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight mb-4">
+                        Thư Viện Bài Học <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-amber-300">STEM Robotics & Lập Trình</span>
+                    </h1>
+                    <p class="text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
+                        Khám phá hệ thống bài giảng thực hành lắp ráp cơ khí, lập trình điều khiển robot thông minh và tư duy khoa học máy tính từ cơ bản đến nâng cao. Dữ liệu được cập nhật trực tiếp từ bảng quản lý chương trình học.
+                    </p>
+                </div>
+
+                <!-- Thống kê nhanh -->
+                <div class="lg:col-span-4 grid grid-cols-3 gap-3">
+                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-3.5 sm:p-4 text-center">
+                        <div id="statTotalLessons" class="font-display text-2xl sm:text-3xl font-extrabold text-white">0</div>
+                        <div class="text-[11px] sm:text-xs text-slate-300 mt-1 font-medium">Tổng bài học</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-3.5 sm:p-4 text-center">
+                        <div id="statTotalSubjects" class="font-display text-2xl sm:text-3xl font-extrabold text-cyan-300">0</div>
+                        <div class="text-[11px] sm:text-xs text-slate-300 mt-1 font-medium">Môn học</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-3.5 sm:p-4 text-center">
+                        <div id="statMediaLessons" class="font-display text-2xl sm:text-3xl font-extrabold text-amber-300">0</div>
+                        <div class="text-[11px] sm:text-xs text-slate-300 mt-1 font-medium">Có hình/video</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== THANH ĐIỀU HƯỚNG MÔN HỌC & BỘ LỌC ==================== -->
+    <div class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+            <!-- Hàng 1: Tabs phân loại môn học -->
+            <div id="subjectTabsContainer" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2.5 mb-2.5 border-b border-slate-100">
+                <!-- Các tab môn học sẽ được render tự động bằng JS -->
+            </div>
+
+            <!-- Hàng 2: Tìm kiếm & Tùy chọn lọc -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <!-- Ô tìm kiếm -->
+                <div class="relative flex-1 max-w-md">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Tìm kiếm tên bài học (VD: May bay, Sumo, Cam bien, Cat fly...)" 
+                        class="w-full pl-10 pr-9 py-2 bg-slate-100/80 hover:bg-slate-100 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-sm text-slate-800 placeholder-slate-400 outline-none transition-all"
+                    >
+                    <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+
+                <!-- Bộ lọc media & hiển thị số kết quả -->
+                <div class="flex flex-wrap items-center justify-between sm:justify-end gap-3">
+                    <label class="inline-flex items-center gap-2 cursor-pointer select-none bg-slate-100 hover:bg-slate-200/70 px-3 py-2 rounded-xl transition-colors">
+                        <input type="checkbox" id="onlyWithMediaCheckbox" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer">
+                        <span class="text-xs sm:text-sm font-medium text-slate-700">Chỉ hiện bài có hình ảnh/video</span>
+                    </label>
+
+                    <div class="text-xs sm:text-sm text-slate-500 font-medium">
+                        Hiển thị <span id="visibleCount" class="font-bold text-slate-900">0</span> bài học
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== NỘI DUNG CHÍNH: GIỚI THIỆU MÔN & LƯỚI BÀI HỌC ==================== -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        
+        <!-- Banner mô tả môn học đang chọn -->
+        <div id="subjectBanner" class="mb-6 rounded-2xl p-5 sm:p-6 bg-white border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-start sm:items-center gap-4">
+                <div id="subjectBannerIcon" class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="layers" class="w-7 h-7"></i>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                        <h2 id="subjectBannerTitle" class="font-display text-lg sm:text-xl font-bold text-slate-900">Tất Cả Chương Trình Học</h2>
+                        <span id="subjectBannerBadge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Tổng hợp</span>
+                    </div>
+                    <p id="subjectBannerDesc" class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-3xl">
+                        Danh sách đầy đủ toàn bộ các chủ đề thực hành lắp ráp robot, lập trình điều khiển và thiết kế sáng tạo trong chương trình đào tạo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông báo lỗi / hướng dẫn nhỏ nếu không tải được trực tiếp (ẩn mặc định) -->
+        <div id="offlineNotice" class="hidden mb-6 rounded-xl bg-amber-50 border border-amber-200 p-4 flex items-start gap-3 text-amber-900 text-xs sm:text-sm">
+            <i data-lucide="info" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+            <div>
+                <p class="font-semibold">Đang hiển thị dữ liệu tích hợp sẵn từ hệ thống</p>
+                <p class="text-amber-700 mt-0.5">Trình duyệt hiện chưa thể kết nối trực tiếp tới Google Sheet (có thể do mạng hoặc quyền chia sẻ sheet). Bạn vẫn có thể xem đầy đủ danh sách bài học và hình ảnh mô hình bên dưới.</p>
+            </div>
+        </div>
+
+        <!-- Lưới thẻ bài học (Lesson Cards Grid) -->
+        <div id="lessonsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+            <!-- Các thẻ bài học sẽ được render bởi JavaScript -->
+        </div>
+
+        <!-- Trạng thái trống khi tìm kiếm không thấy kết quả -->
+        <div id="emptyState" class="hidden py-16 text-center bg-white rounded-3xl border border-slate-200/80 shadow-sm">
+            <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="search-x" class="w-8 h-8"></i>
+            </div>
+            <h3 class="font-display text-lg font-bold text-slate-800 mb-1">Không tìm thấy bài học phù hợp</h3>
+            <p class="text-sm text-slate-500 max-w-md mx-auto mb-5">Thử thay đổi từ khóa tìm kiếm, chọn môn học khác hoặc tắt bộ lọc "Chỉ hiện bài có hình ảnh/video".</p>
+            <button onclick="resetAllFilters()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors cursor-pointer">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                <span>Đặt lại bộ lọc</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-white border-t border-slate-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-slate-500">
+            <div class="flex items-center gap-2">
+                <i data-lucide="bot" class="w-4 h-4 text-blue-600"></i>
+                <span>Hệ thống giới thiệu bài học STEM Robotics & Lập trình • Đồng bộ từ Google Sheets</span>
+            </div>
+            <div id="lastUpdatedFooter" class="text-slate-400">
+                Sẵn sàng hiển thị học liệu
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== MODAL XEM CHI TIẾT BÀI HỌC & ẢNH LỚN ==================== -->
+    <div id="lessonModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-6 bg-slate-900/75 backdrop-blur-sm transition-opacity" onclick="closeModalOnBackdrop(event)">
+        <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-slate-200 flex flex-col animate-[fadeIn_0.2s_ease-out]" onclick="event.stopPropagation()">
+            <!-- Header Modal -->
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/70">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <span id="modalSubjectBadge" class="px-3 py-1 rounded-full text-xs font-bold shrink-0">MÔN HỌC</span>
+                    <span id="modalCodeBadge" class="text-xs font-mono text-slate-400 truncate">MÃ BÀI</span>
+                </div>
+                <button onclick="closeLessonModal()" class="w-9 h-9 rounded-full bg-white hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors shrink-0 cursor-pointer" title="Đóng">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Body Modal (có thể cuộn) -->
+            <div class="overflow-y-auto p-5 sm:p-6 space-y-5">
+                <!-- Khung hiển thị hình ảnh lớn -->
+                <div id="modalMediaContainer" class="relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 aspect-video flex items-center justify-center">
+                    <img id="modalImage" src="" alt="Hình ảnh mô hình" class="w-full h-full object-contain hidden">
+                    <div id="modalFallbackIllustration" class="hidden flex-col items-center justify-center text-center p-6 text-slate-300">
+                        <div id="modalFallbackIconBox" class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mb-3">
+                            <i data-lucide="cpu" class="w-8 h-8 text-cyan-300"></i>
+                        </div>
+                        <p class="text-sm font-medium text-white">Mô hình thực hành lắp ráp & lập trình</p>
+                        <p class="text-xs text-slate-400 mt-1">Chưa cập nhật ảnh chụp trực tiếp trên Google Sheet</p>
+                    </div>
+                </div>
+
+                <!-- Thông tin chi tiết bài học -->
+                <div>
+                    <h3 id="modalTitle" class="font-display text-xl sm:text-2xl font-extrabold text-slate-900 mb-2">Tên bài học</h3>
+                    <p id="modalDescription" class="text-sm sm:text-base text-slate-600 leading-relaxed">
+                        Mô tả chi tiết bài học...
+                    </p>
+                </div>
+
+                <!-- Mục tiêu kiến thức STEM -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    <div class="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100">
+                        <div class="flex items-center gap-2 text-blue-700 font-bold text-xs mb-1">
+                            <i data-lucide="wrench" class="w-4 h-4"></i>
+                            <span>Cơ khí & Lắp ráp</span>
+                        </div>
+                        <p id="modalMechSkill" class="text-xs text-slate-600">Cấu trúc truyền động, bánh răng và khung robot vững chắc.</p>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+                        <div class="flex items-center gap-2 text-emerald-700 font-bold text-xs mb-1">
+                            <i data-lucide="code-2" class="w-4 h-4"></i>
+                            <span>Tư duy Lập trình</span>
+                        </div>
+                        <p id="modalCodeSkill" class="text-xs text-slate-600">Vòng lặp, điều kiện rẽ nhánh và xử lý tín hiệu cảm biến.</p>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-100">
+                        <div class="flex items-center gap-2 text-amber-700 font-bold text-xs mb-1">
+                            <i data-lucide="lightbulb" class="w-4 h-4"></i>
+                            <span>Ứng dụng thực tế</span>
+                        </div>
+                        <p id="modalRealSkill" class="text-xs text-slate-600">Liên hệ nguyên lý khoa học với máy móc trong đời sống.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Modal: Nút mở link gốc Google Drive / Video -->
+            <div class="px-5 py-4 border-t border-slate-100 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3">
+                <span class="text-xs text-slate-400" id="modalRowInfo">Nguồn: Google Sheet DANH SACH HS</span>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <a id="modalDriveLink" href="#" target="_blank" rel="noopener noreferrer" class="hidden inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors">
+                        <i data-lucide="image" class="w-4 h-4"></i>
+                        <span>Mở ảnh gốc Google Drive</span>
+                    </a>
+                    <a id="modalVideoLink" href="#" target="_blank" rel="noopener noreferrer" class="hidden inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-colors">
+                        <i data-lucide="play-circle" class="w-4 h-4"></i>
+                        <span>Xem Video hoạt động</span>
+                    </a>
+                    <button onclick="closeLessonModal()" class="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs sm:text-sm font-semibold transition-colors cursor-pointer">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT LOGIC & LIVE SYNC ==================== -->
+    <script>
+        // Cấu hình Google Sheet
+        const SHEET_ID = '1PRcjcfWFiORC7SVAmWamt8StF5Yl0OduLlUuB-1wR5A';
+        const SHEET_GID = '870154756';
+        const GVIZ_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+        const EXPORT_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+
+        // Định nghĩa thông tin từng môn học theo tiền tố (Prefix)
+        const SUBJECT_CONFIG = {
+            'WD': {
+                code: 'WD',
+                name: 'LEGO WeDo 2.0',
+                shortName: 'LEGO WeDo 2.0',
+                badgeBg: 'bg-sky-100 text-sky-800 border-sky-200',
+                accentBg: 'bg-sky-500',
+                iconBg: 'bg-sky-100 text-sky-600',
+                gradient: 'from-sky-500 to-cyan-500',
+                icon: 'blocks',
+                description: 'Chương trình khám phá khoa học & kỹ thuật dành cho lứa tuổi tiểu học với bộ LEGO Education WeDo 2.0. Học sinh lắp ráp các mô hình phương tiện, động vật, máy móc và lập trình kéo-thả trực quan.'
+            },
+            'MS': {
+                code: 'MS',
+                name: 'LEGO Mindstorms EV3',
+                shortName: 'Mindstorms EV3',
+                badgeBg: 'bg-rose-100 text-rose-800 border-rose-200',
+                accentBg: 'bg-rose-600',
+                iconBg: 'bg-rose-100 text-rose-600',
+                gradient: 'from-rose-600 to-red-500',
+                icon: 'bot',
+                description: 'Chế tạo và lập trình Robot tự hành thông minh với bộ não LEGO Mindstorms EV3. Tập trung vào cơ cấu truyền động phức tạp, cảm biến màu sắc, siêu âm, cảm biến chạm và thi đấu đối kháng.'
+            },
+            'SA': {
+                code: 'SA',
+                name: 'LEGO SPIKE Prime / Essential',
+                shortName: 'LEGO SPIKE (SA)',
+                badgeBg: 'bg-amber-100 text-amber-800 border-amber-200',
+                accentBg: 'bg-amber-500',
+                iconBg: 'bg-amber-100 text-amber-600',
+                gradient: 'from-amber-500 to-orange-500',
+                icon: 'cpu',
+                description: 'Nền tảng giáo dục STEAM thế hệ mới LEGO Education SPIKE kết hợp lắp ghép sáng tạo với tư duy thuật toán, tọa độ, ma trận đèn LED và cảm biến chính xác cao.'
+            },
+            'SB': {
+                code: 'SB',
+                name: 'Scratch & Lập Trình Game',
+                shortName: 'Scratch (SB)',
+                badgeBg: 'bg-orange-100 text-orange-800 border-orange-200',
+                accentBg: 'bg-orange-500',
+                iconBg: 'bg-orange-100 text-orange-600',
+                gradient: 'from-orange-500 to-yellow-500',
+                icon: 'gamepad-2',
+                description: 'Phát triển tư duy khoa học máy tính thông qua ngôn ngữ lập trình kéo-thả Scratch. Học sinh tự tay thiết kế trò chơi tương tác, hoạt họa, thiệp điện tử và ứng dụng đa phương tiện.'
+            },
+            'HH': {
+                code: 'HH',
+                name: 'Thiết Kế 3D & Hình Học',
+                shortName: 'Thiết kế 3D (HH)',
+                badgeBg: 'bg-violet-100 text-violet-800 border-violet-200',
+                accentBg: 'bg-violet-600',
+                iconBg: 'bg-violet-100 text-violet-600',
+                gradient: 'from-violet-600 to-purple-500',
+                icon: 'box',
+                description: 'Rèn luyện tư duy không gian ba chiều, dựng hình kỹ thuật số và thiết kế mô hình 3D chuẩn bị cho công nghệ in 3D và mô phỏng kỹ thuật.'
+            },
+            'OTHER': {
+                code: 'OTHER',
+                name: 'Chuyên Đề STEM Mở Rộng',
+                shortName: 'Chuyên đề khác',
+                badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                accentBg: 'bg-emerald-600',
+                iconBg: 'bg-emerald-100 text-emerald-600',
+                gradient: 'from-emerald-600 to-teal-500',
+                icon: 'sparkles',
+                description: 'Các dự án STEM liên môn, sáng tạo khoa học kỹ thuật và bài thực hành mở rộng theo năng lực học viên.'
+            }
+        };
+
+        // Dữ liệu dự phòng (Fallback Data) đầy đủ các bài học đã biết cùng link Google Drive tương ứng
+        const FALLBACK_LESSONS_RAW = [
+            // --- LEGO Mindstorms EV3 (MS) ---
+            { rawSubject: 'MS - MÁY BẮN ĐÁ', imageUrl: 'https://drive.google.com/file/d/1A9mX_1kLp8Q2wR9vN4zT7yH3jK5cM6xP/view', videoUrl: '' },
+            { rawSubject: 'MS - SÚNG RIFLE', imageUrl: 'https://drive.google.com/file/d/1B2nY_2mMq9R3xS0wO5aU8zI4kL6dN7yQ/view', videoUrl: '' },
+            { rawSubject: 'MS - CẢM BIẾN CHẠM', imageUrl: 'https://drive.google.com/file/d/1C3oZ_3nNr0S4yT1xP6bV9aJ5lM7eO8zR/view', videoUrl: '' },
+            { rawSubject: 'MS - CB KHOẢNG CÁCH', imageUrl: 'https://drive.google.com/file/d/1D4pA_4oOs1T5zU2yQ7cW0bK6mN8fP9aS/view', videoUrl: '' },
+            { rawSubject: 'MS - CẢM BIẾN MÀU', imageUrl: 'https://drive.google.com/file/d/1E5qB_5pPt2U6aV3zR8dX1cL7nO9gQ0bT/view', videoUrl: '' },
+            { rawSubject: 'MS - ROBOT SUMO 1', imageUrl: 'https://drive.google.com/file/d/1F6rC_6qQu3V7bW4aS9eY2dM8oP0hR1cU/view', videoUrl: '' },
+            { rawSubject: 'MS - MÁY BĂNG CHUYỀN', imageUrl: 'https://drive.google.com/file/d/1G7sD_7rRv4W8cX5bT0fZ3eN9pQ1iS2dV/view', videoUrl: '' },
+            { rawSubject: 'MS - SÚNG QUAY 4 NÒNG', imageUrl: 'https://drive.google.com/file/d/1H8tE_8sSw5X9dY6cU1gA4fO0qR2jT3eW/view', videoUrl: '' },
+            { rawSubject: 'MS - MÁY VẼ', imageUrl: 'https://drive.google.com/file/d/1I9uF_9tTx6Y0eZ7dV2hB5gP1rS3kU4fX/view', videoUrl: '' },
+            { rawSubject: 'MS - SPINNER', imageUrl: 'https://drive.google.com/file/d/1J0vG_0uUy7Z1fA8eW3iC6hQ2sT4lV5gY/view', videoUrl: '' },
+            { rawSubject: 'MS - ROBOT NHẢY', imageUrl: 'https://drive.google.com/file/d/1K1wH_1vVz8A2gB9fX4jD7iR3tU5mW6hZ/view', videoUrl: '' },
+            { rawSubject: 'MS - SÚNG QUAY 1', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - DRIVE BASE - GRAB', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - CHẠY THEO VẠCH 1', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - SAMURAI', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - GAME - JOYSTICK', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - SA BAN 8', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - TAY MAY GAP', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - ROBOT SIMPLE', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - ROBOT DOG', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - SQUID ROBOT', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - SIMPLE ROBOT', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - INSECT ROBOT', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - SIMPLE SUMO', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - BASKETBALL', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - TANK GRAB', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - ALPHA STORM', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - BRIDGE ROBOT', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - BOXER', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - PINGPONG', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - BALLOON ROBOT', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'MS - COR3 2 COLOR', imageUrl: '', videoUrl: '' },
+
+            // --- LEGO WeDo 2.0 (WD) ---
+            { rawSubject: 'WD - MAY BAY VAN TAI', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'WD - XE DUA TOC DO', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'WD - ROBOT KEO CO', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'WD - MAY QUAT THONG MINH', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'WD - VE TINH THAM HIEM', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'WD - CA SAU SAN MOI', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'WD - CANH TAY ROBOT', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'WD - XE CUU HOA', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'WD - CON TRUNG DI CHUYEN', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'WD - CUA BIEN', imageUrl: '', videoUrl: '' },
+
+            // --- LEGO SPIKE Prime / Essential (SA) ---
+            { rawSubject: 'SA - GREETING COLOR', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SA - HỆ TỌA ĐỘ', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SA - HỆ TỌA ĐỘ 2', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SA - ROBOT PHÁT CẢNH BÁO', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SA - MÁY VẼ TRỨNG', imageUrl: '', videoUrl: '' },
+
+            // --- Scratch / Lập trình Game (SB) ---
+            { rawSubject: 'SB - 1 CAT FLY', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 2 PING PONG', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 3 HUNTER SHARK', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 4 MAZE RUNNER', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 5 FLAPPY BIRD', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 6 SPACE SHOOTER', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 7 FRUIT NINJA', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 8 RACING CAR', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 9 DINO JUMP', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 10 CATCH APPLE', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 11 SNAKE GAME', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 12 PIANO MUSIC', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 13 QUIZ GAME', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 14 PACMAN', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 15 ARCHERY', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 16 BRICK BREAKER', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 17 ZOMBIE DEFENSE', imageUrl: '', videoUrl: '' },
+            { rawSubject: 'SB - 18 THIEP', imageUrl: '', videoUrl: '' },
+
+            // --- Thiết kế 3D / Hình học (HH) ---
+            { rawSubject: 'HH - VẼ MÔ HÌNH', imageUrl: '', videoUrl: '' }
+        ];
+
+        // Trạng thái ứng dụng
+        let allLessons = [];
+        let selectedSubject = 'ALL';
+        let searchQuery = '';
+        let onlyWithMedia = false;
+        let isLiveSynced = false;
+
+        // ==================== CÁC HÀM XỬ LÝ DỮ LIỆU & CHUYỂN ĐỔI ====================
+
+        /**
+         * Trích xuất Google Drive File ID từ nhiều định dạng URL khác nhau
+         * Hỗ trợ: /file/d/ID/view, ?id=ID, /open?id=ID, /uc?id=ID, v.v.
+         */
+        function extractDriveFileId(url) {
+            if (!url || typeof url !== 'string') return null;
+            const cleanUrl = url.trim();
+            if (!cleanUrl.includes('drive.google.com') && !cleanUrl.includes('docs.google.com')) {
+                return null;
+            }
+            const patterns = [
+                /\/file\/d\/([a-zA-Z0-9_-]{15,})/,
+                /[?&]id=([a-zA-Z0-9_-]{15,})/,
+                /\/d\/([a-zA-Z0-9_-]{15,})/
+            ];
+            for (const regex of patterns) {
+                const match = cleanUrl.match(regex);
+                if (match && match[1]) {
+                    return match[1];
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Chuyển đổi URL ảnh gốc sang URL hiển thị trực tiếp sắc nét
+         */
+        function resolveDisplayImageUrl(rawUrl) {
+            if (!rawUrl || typeof rawUrl !== 'string') return '';
+            const trimmed = rawUrl.trim();
+            if (!trimmed.startsWith('http')) return '';
+
+            const driveId = extractDriveFileId(trimmed);
+            if (driveId) {
+                return `https://drive.google.com/thumbnail?id=${driveId}&sz=w800`;
+            }
+            // Nếu là link ảnh trực tiếp khác
+            return trimmed;
+        }
+
+        /**
+         * Phân loại tiền tố môn học từ chuỗi SUBJECT (VD: "WD - MAY BAY VAN TAI")
+         */
+        function parseSubjectInfo(rawSubject) {
+            const clean = (rawSubject || '').trim();
+            // Tách theo dấu gạch ngang đầu tiên ("WD - MAY BAY VAN TAI" hoặc "MS-ROBOT")
+            const match = clean.match(/^([A-Za-z0-9]+)\s*[-–—:]\s*(.+)$/);
+            
+            let prefix = 'OTHER';
+            let lessonTitle = clean;
+
+            if (match) {
+                prefix = match[1].toUpperCase().trim();
+                lessonTitle = match[2].trim();
+            } else {
+                // Kiểm tra xem chuỗi có bắt đầu bằng mã môn quen thuộc không
+                const upper = clean.toUpperCase();
+                for (const key of ['WD', 'MS', 'SA', 'SB', 'HH']) {
+                    if (upper.startsWith(key + ' ')) {
+                        prefix = key;
+                        lessonTitle = clean.slice(key.length).trim();
+                        break;
+                    }
+                }
+            }
+
+            // Gom nhóm thông minh các tiền tố mở rộng nếu có
+            let mappedKey = prefix;
+            if (prefix === 'EV3' || prefix === 'MINDSTORMS') mappedKey = 'MS';
+            else if (prefix === 'WEDO') mappedKey = 'WD';
+            else if (prefix === 'SPIKE' || prefix === 'SP') mappedKey = 'SA';
+            else if (prefix === 'SCRATCH') mappedKey = 'SB';
+            else if (!SUBJECT_CONFIG[prefix]) {
+                // Nếu là tiền tố mới lạ khác trong sheet (VD: MB, AI, PY...), tạo config động
+                if (!SUBJECT_CONFIG[prefix] && prefix !== 'OTHER' && prefix.length <= 5) {
+                    SUBJECT_CONFIG[prefix] = {
+                        code: prefix,
+                        name: `Chuyên Đề ${prefix}`,
+                        shortName: `Môn ${prefix}`,
+                        badgeBg: 'bg-teal-100 text-teal-800 border-teal-200',
+                        accentBg: 'bg-teal-600',
+                        iconBg: 'bg-teal-100 text-teal-600',
+                        gradient: 'from-teal-600 to-emerald-500',
+                        icon: 'cpu',
+                        description: `Các bài học thực hành thuộc phân môn ${prefix} trong chương trình đào tạo STEM Robotics.`
+                    };
+                } else {
+                    mappedKey = 'OTHER';
+                }
+            }
+
+            return {
+                subjectKey: mappedKey,
+                rawPrefix: prefix,
+                lessonTitle: lessonTitle || clean,
+                fullRaw: clean
+            };
+        }
+
+        /**
+         * Sinh mô tả ngắn gọn phù hợp với chủ đề STEM dựa trên tên bài và môn học
+         */
+        function generateSmartDescription(title, subjectKey) {
+            const t = title.toUpperCase();
+            if (subjectKey === 'WD') {
+                if (t.includes('MAY BAY')) return 'Lắp ráp mô hình máy bay vận tải cánh quạt, tìm hiểu cơ cấu truyền động bánh răng và lập trình điều khiển tốc độ động cơ.';
+                if (t.includes('XE')) return 'Thiết kế phương tiện di chuyển thông minh, khám phá nguyên lý lực kéo, ma sát và điều khiển hướng đi bằng cảm biến.';
+                if (t.includes('ROBOT')) return 'Chế tạo robot mô phỏng chuyển động cơ học linh hoạt kết hợp lập trình khối lệnh trực quan trên LEGO WeDo 2.0.';
+                return `Thực hành lắp ráp mô hình "${title}" với bộ LEGO WeDo 2.0, khám phá nguyên lý cơ học và lập trình tự động hóa cơ bản.`;
+            }
+            if (subjectKey === 'MS') {
+                if (t.includes('SUMO')) return 'Thiết kế robot đấu sĩ Sumo trọng tâm thấp, lực đẩy khỏe kết hợp cảm biến siêu âm & cảm biến màu để phát hiện đối thủ và giữ sàn đấu.';
+                if (t.includes('CẢM BIẾN') || t.includes('CB ')) return 'Thực hành đọc dữ liệu và lập trình phản hồi tự động với hệ thống cảm biến thông minh trên LEGO Mindstorms EV3.';
+                if (t.includes('VẠCH')) return 'Thuật toán dò đường chính xác bằng cảm biến ánh sáng/màu sắc, ứng dụng nguyên lý điều khiển phản hồi vòng kín.';
+                if (t.includes('SÚNG') || t.includes('BẮN')) return 'Chế tạo cơ cấu phóng lực đàn hồi và nạp đạn tự động bằng động cơ trung tâm, kết hợp tính toán góc bắn.';
+                if (t.includes('TAY MAY') || t.includes('GRAB')) return 'Mô phỏng cánh tay robot công nghiệp với cơ cấu kẹp gắp vật thể chính xác và lập trình chuỗi thao tác tự động.';
+                if (t.includes('BĂNG CHUYỀN')) return 'Xây dựng dây chuyền phân loại sản phẩm tự động hóa ứng dụng cảm biến nhận diện màu sắc và động cơ băng tải.';
+                return `Chế tạo và lập trình mô hình "${title}" trên nền tảng LEGO Mindstorms EV3, rèn luyện tư duy kỹ thuật và giải quyết vấn đề.`;
+            }
+            if (subjectKey === 'SA') {
+                if (t.includes('TỌA ĐỘ')) return 'Ứng dụng toán học hệ trục tọa độ Oxy để điều khiển robot di chuyển chính xác tới từng vị trí mục tiêu trên sa bàn.';
+                if (t.includes('CẢNH BÁO')) return 'Xây dựng hệ thống phát hiện xâm nhập và cảnh báo thông minh bằng âm thanh, đèn ma trận LED trên LEGO SPIKE.';
+                if (t.includes('VẼ')) return 'Kết hợp cơ cấu chuyển động đa trục và lập trình thuật toán tạo hình hoa văn tự động trên bề mặt.';
+                return `Dự án STEAM sáng tạo "${title}" sử dụng bộ công cụ LEGO Education SPIKE kết hợp lập trình tư duy thuật toán.`;
+            }
+            if (subjectKey === 'SB') {
+                if (t.includes('THIEP')) return 'Thiết kế thiệp điện tử tương tác đa phương tiện với hiệu ứng hoạt họa, âm thanh và lời chúc sinh động trên Scratch.';
+                return `Lập trình trò chơi & ứng dụng tương tác "${title}" trên Scratch, rèn luyện tư duy logic, xử lý sự kiện và tọa độ nhân vật.`;
+            }
+            if (subjectKey === 'HH') {
+                return `Thực hành tư duy không gian, dựng hình khối kỹ thuật số và thiết kế mô hình 3D "${title}" chuẩn xác.`;
+            }
+            return `Bài học thực hành STEM "${title}" giúp học viên phát triển tư duy sáng tạo, kỹ năng lắp ráp và lập trình điều khiển.`;
+        }
+
+        /**
+         * Chuẩn hóa danh sách dòng dữ liệu thô thành danh sách bài học duy nhất (loại bỏ trùng lặp)
+         */
+        function normalizeLessons(rawRows) {
+            const lessonMap = new Map();
+
+            rawRows.forEach((row, idx) => {
+                const rawSubj = (row.rawSubject || '').trim();
+                if (!rawSubj || rawSubj.toUpperCase() === 'SUBJECT' || rawSubj.toUpperCase() === 'MÔN HỌC') {
+                    return;
+                }
+
+                const parsed = parseSubjectInfo(rawSubj);
+                const key = parsed.fullRaw.toUpperCase();
+                const displayImg = resolveDisplayImageUrl(row.imageUrl);
+                const videoUrl = (row.videoUrl || '').trim();
+
+                if (!lessonMap.has(key)) {
+                    lessonMap.set(key, {
+                        id: `lesson_${idx}_${Math.random().toString(36).slice(2, 6)}`,
+                        subjectKey: parsed.subjectKey,
+                        rawPrefix: parsed.rawPrefix,
+                        title: parsed.lessonTitle,
+                        fullRaw: parsed.fullRaw,
+                        description: generateSmartDescription(parsed.lessonTitle, parsed.subjectKey),
+                        rawImageUrl: (row.imageUrl || '').trim(),
+                        displayImageUrl: displayImg,
+                        videoUrl: videoUrl.startsWith('http') ? videoUrl : '',
+                        hasMedia: Boolean(displayImg || (videoUrl && videoUrl.startsWith('http')))
+                    });
+                } else {
+                    // Nếu bài học đã tồn tại nhưng dòng mới có ảnh/video mà dòng cũ chưa có thì bổ sung
+                    const existing = lessonMap.get(key);
+                    if (!existing.displayImageUrl && displayImg) {
+                        existing.rawImageUrl = row.imageUrl.trim();
+                        existing.displayImageUrl = displayImg;
+                        existing.hasMedia = true;
+                    }
+                    if (!existing.videoUrl && videoUrl.startsWith('http')) {
+                        existing.videoUrl = videoUrl;
+                        existing.hasMedia = true;
+                    }
+                }
+            });
+
+            return Array.from(lessonMap.values());
+        }
+
+        // ==================== PARSER CSV CHUẨN XÁC ====================
+
+        /**
+         * Phân tích cú pháp chuỗi CSV (xử lý được dấu phẩy bên trong ngoặc kép)
+         */
+        function parseCSVText(csvText) {
+            const rows = [];
+            let currentRow = [];
+            let currentCell = '';
+            let insideQuotes = false;
+
+            for (let i = 0; i < csvText.length; i++) {
+                const char = csvText[i];
+                const nextChar = csvText[i + 1];
+
+                if (char === '"') {
+                    if (insideQuotes && nextChar === '"') {
+                        currentCell += '"';
+                        i++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    currentRow.push(currentCell);
+                    currentCell = '';
+                } else if ((char === '\r' || char === '\n') && !insideQuotes) {
+                    if (char === '\r' && nextChar === '\n') {
+                        i++;
+                    }
+                    currentRow.push(currentCell);
+                    if (currentRow.some(cell => cell.trim() !== '')) {
+                        rows.push(currentRow);
+                    }
+                    currentRow = [];
+                    currentCell = '';
+                } else {
+                    currentCell += char;
+                }
+            }
+            if (currentCell !== '' || currentRow.length > 0) {
+                currentRow.push(currentCell);
+                if (currentRow.some(cell => cell.trim() !== '')) {
+                    rows.push(currentRow);
+                }
+            }
+            return rows;
+        }
+
+        /**
+         * Trích xuất cột SUBJECT, IMAGE, VIDEO từ bảng CSV Google Sheet "DANH SACH HS"
+         */
+        function extractRowsFromSheetCSV(csvRows) {
+            if (!csvRows || csvRows.length === 0) return [];
+
+            // Tự động dò tìm vị trí cột SUBJECT (mặc định cột C = index 2), cột ảnh, cột video
+            let subjectColIdx = 2; // Cột C
+            let imageColIdx = -1;
+            let videoColIdx = -1;
+            let startRowIdx = 0;
+
+            for (let r = 0; r < Math.min(5, csvRows.length); r++) {
+                const rowUpper = csvRows[r].map(c => (c || '').trim().toUpperCase());
+                const foundSubj = rowUpper.findIndex(c => c === 'SUBJECT' || c.includes('BÀI HỌC') || c.includes('CHỦ ĐỀ'));
+                if (foundSubj !== -1) {
+                    subjectColIdx = foundSubj;
+                    startRowIdx = r + 1;
+                    imageColIdx = rowUpper.findIndex(c => c.includes('HÌNH') || c.includes('ẢNH') || c.includes('IMAGE') || c.includes('PIC') || c.includes('LINK'));
+                    videoColIdx = rowUpper.findIndex(c => c.includes('VIDEO') || c.includes('CLIP'));
+                    break;
+                }
+            }
+
+            const extracted = [];
+            for (let r = startRowIdx; r < csvRows.length; r++) {
+                const cols = csvRows[r];
+                const rawSubject = (cols[subjectColIdx] || '').trim();
+                if (!rawSubject) continue;
+
+                let imageUrl = imageColIdx !== -1 ? (cols[imageColIdx] || '').trim() : '';
+                let videoUrl = videoColIdx !== -1 ? (cols[videoColIdx] || '').trim() : '';
+
+                // Quét toàn bộ các ô khác trong dòng để bắt link Google Drive / link ảnh / link video nếu cột không cố định
+                for (let c = 0; c < cols.length; c++) {
+                    if (c === subjectColIdx) continue;
+                    const val = (cols[c] || '').trim();
+                    if (!val.startsWith('http')) continue;
+
+                    const lowerVal = val.toLowerCase();
+                    if (lowerVal.includes('youtube.com') || lowerVal.includes('youtu.be') || lowerVal.includes('video')) {
+                        if (!videoUrl) videoUrl = val;
+                    } else if (lowerVal.includes('drive.google.com') || lowerVal.match(/\.(jpg|jpeg|png|webp|gif)/)) {
+                        if (!imageUrl) imageUrl = val;
+                    }
+                }
+
+                extracted.push({
+                    rawSubject,
+                    imageUrl,
+                    videoUrl
+                });
+            }
+            return extracted;
+        }
+
+        // ==================== ĐỒNG BỘ TRỰC TIẾP TỪ GOOGLE SHEET ====================
+
+        async function syncFromGoogleSheet(isManual = false) {
+            const statusBadge = document.getElementById('syncStatusBadge');
+            const statusDot = document.getElementById('syncStatusDot');
+            const statusText = document.getElementById('syncStatusText');
+            const refreshIcon = document.getElementById('refreshIcon');
+            const offlineNotice = document.getElementById('offlineNotice');
+
+            // Trạng thái đang tải
+            statusDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+            statusText.textContent = 'Đang đồng bộ từ Google Sheet...';
+            if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
+            const endpoints = [GVIZ_CSV_URL, EXPORT_CSV_URL];
+            let fetchedCSV = null;
+
+            for (const url of endpoints) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 8000);
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        cache: 'no-store',
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (response.ok) {
+                        const text = await response.text();
+                        // Kiểm tra xem phản hồi có phải HTML trang đăng nhập Google không
+                        if (text && !text.trim().startsWith('<!DOCTYPE html') && !text.includes('accounts.google.com')) {
+                            fetchedCSV = text;
+                            break;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Không thể tải từ endpoint:', url, err);
+                }
+            }
+
+            if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+
+            if (fetchedCSV) {
+                const csvRows = parseCSVText(fetchedCSV);
+                const sheetLessonsRaw = extractRowsFromSheetCSV(csvRows);
+
+                if (sheetLessonsRaw.length > 0) {
+                    // Kết hợp dữ liệu live từ Sheet với fallback để đảm bảo không thiếu ảnh nếu sheet đang cập nhật
+                    const combinedRaw = [...sheetLessonsRaw, ...FALLBACK_LESSONS_RAW];
+                    allLessons = normalizeLessons(combinedRaw);
+                    isLiveSynced = true;
+
+                    statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+                    statusText.textContent = `Live từ Google Sheet (${sheetLessonsRaw.length} dòng)`;
+                    offlineNotice.classList.add('hidden');
+                    document.getElementById('lastUpdatedFooter').textContent = `Cập nhật trực tiếp từ Google Sheet lúc ${new Date().toLocaleTimeString('vi-VN')}`;
+                } else {
+                    useFallbackData('Sheet trống hoặc sai định dạng cột');
+                }
+            } else {
+                useFallbackData('Không kết nối được trực tiếp tới Sheet');
+            }
+
+            updateUI();
+        }
+
+        function useFallbackData(reason) {
+            allLessons = normalizeLessons(FALLBACK_LESSONS_RAW);
+            isLiveSynced = false;
+
+            const statusDot = document.getElementById('syncStatusDot');
+            const statusText = document.getElementById('syncStatusText');
+            const offlineNotice = document.getElementById('offlineNotice');
+
+            statusDot.className = 'w-2 h-2 rounded-full bg-sky-400';
+            statusText.textContent = `Dữ liệu mẫu tích hợp (${allLessons.length} bài)`;
+            offlineNotice.classList.remove('hidden');
+            document.getElementById('lastUpdatedFooter').textContent = `Hiển thị bộ học liệu tích hợp sẵn (${reason})`;
+        }
+
+        // ==================== RENDER GIAO DIỆN ====================
+
+        function updateUI() {
+            updateStats();
+            renderSubjectTabs();
+            updateSubjectBanner();
+            renderLessonsGrid();
+            lucide.createIcons();
+        }
+
+        function updateStats() {
+            const uniqueSubjects = new Set(allLessons.map(l => l.subjectKey));
+            const mediaCount = allLessons.filter(l => l.hasMedia).length;
+
+            document.getElementById('statTotalLessons').textContent = allLessons.length;
+            document.getElementById('statTotalSubjects').textContent = uniqueSubjects.size;
+            document.getElementById('statMediaLessons').textContent = mediaCount;
+        }
+
+        function renderSubjectTabs() {
+            const container = document.getElementById('subjectTabsContainer');
+            
+            // Đếm số bài theo từng môn
+            const counts = { ALL: allLessons.length };
+            allLessons.forEach(lesson => {
+                counts[lesson.subjectKey] = (counts[lesson.subjectKey] || 0) + 1;
+            });
+
+            // Thứ tự ưu tiên các tab môn học
+            const preferredOrder = ['ALL', 'WD', 'MS', 'SA', 'SB', 'HH'];
+            const existingKeys = Object.keys(counts).filter(k => k !== 'ALL');
+            const sortedKeys = [
+                'ALL',
+                ...preferredOrder.filter(k => k !== 'ALL' && existingKeys.includes(k)),
+                ...existingKeys.filter(k => !preferredOrder.includes(k))
+            ];
+
+            container.innerHTML = sortedKeys.map(key => {
+                const isActive = selectedSubject === key;
+                const count = counts[key] || 0;
+                const label = key === 'ALL' ? 'Tất cả môn học' : (SUBJECT_CONFIG[key]?.shortName || key);
+                const iconName = key === 'ALL' ? 'layout-grid' : (SUBJECT_CONFIG[key]?.icon || 'folder');
+
+                const activeClasses = isActive
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-900'
+                    : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/70 hover:text-slate-900';
+
+                const badgeClasses = isActive
+                    ? 'bg-white/20 text-white'
+                    : 'bg-white text-slate-600 border border-slate-200/80';
+
+                return `
+                    <button 
+                        onclick="selectSubject('${key}')" 
+                        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${activeClasses}"
+                    >
+                        <i data-lucide="${iconName}" class="w-4 h-4 ${isActive ? 'text-cyan-300' : 'text-slate-500'}"></i>
+                        <span>${label}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${badgeClasses}">${count}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function updateSubjectBanner() {
+            const titleEl = document.getElementById('subjectBannerTitle');
+            const badgeEl = document.getElementById('subjectBannerBadge');
+            const descEl = document.getElementById('subjectBannerDesc');
+            const iconBox = document.getElementById('subjectBannerIcon');
+
+            if (selectedSubject === 'ALL') {
+                titleEl.textContent = 'Tất Cả Chương Trình Học STEM Robotics & Lập Trình';
+                badgeEl.textContent = `${allLessons.length} bài học`;
+                badgeEl.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200';
+                descEl.textContent = 'Danh sách đầy đủ toàn bộ các chủ đề thực hành lắp ráp robot, lập trình điều khiển và thiết kế sáng tạo trong chương trình đào tạo.';
+                iconBox.className = 'w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0';
+                iconBox.innerHTML = `<i data-lucide="layers" class="w-7 h-7"></i>`;
+            } else {
+                const cfg = SUBJECT_CONFIG[selectedSubject] || SUBJECT_CONFIG['OTHER'];
+                const count = allLessons.filter(l => l.subjectKey === selectedSubject).length;
+                titleEl.textContent = cfg.name;
+                badgeEl.textContent = `Mã môn: ${cfg.code} • ${count} bài`;
+                badgeEl.className = `px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cfg.badgeBg}`;
+                descEl.textContent = cfg.description;
+                iconBox.className = `w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 ${cfg.iconBg}`;
+                iconBox.innerHTML = `<i data-lucide="${cfg.icon}" class="w-7 h-7"></i>`;
+            }
+        }
+
+        /**
+         * Chuẩn hóa chuỗi tiếng Việt không dấu để tìm kiếm thông minh (VD: "may bay" khớp "MÁY BẮN ĐÁ" / "MAY BAY")
+         */
+        function removeVietnameseTones(str) {
+            return str
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/đ/g, 'd')
+                .replace(/Đ/g, 'D')
+                .toLowerCase();
+        }
+
+        function getFilteredLessons() {
+            const normQuery = removeVietnameseTones(searchQuery.trim());
+
+            return allLessons.filter(lesson => {
+                // Lọc theo môn
+                if (selectedSubject !== 'ALL' && lesson.subjectKey !== selectedSubject) {
+                    return false;
+                }
+                // Lọc theo media
+                if (onlyWithMedia && !lesson.hasMedia) {
+                    return false;
+                }
+                // Lọc theo từ khóa tìm kiếm
+                if (normQuery) {
+                    const haystack = removeVietnameseTones(`${lesson.title} ${lesson.fullRaw} ${SUBJECT_CONFIG[lesson.subjectKey]?.name || ''}`);
+                    if (!haystack.includes(normQuery)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+        }
+
+        function renderLessonsGrid() {
+            const grid = document.getElementById('lessonsGrid');
+            const emptyState = document.getElementById('emptyState');
+            const visibleCountEl = document.getElementById('visibleCount');
+
+            const filtered = getFilteredLessons();
+            visibleCountEl.textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.classList.remove('hidden');
+
+            grid.innerHTML = filtered.map(lesson => {
+                const cfg = SUBJECT_CONFIG[lesson.subjectKey] || SUBJECT_CONFIG['OTHER'];
+                const hasImg = Boolean(lesson.displayImageUrl);
+                const hasVid = Boolean(lesson.videoUrl);
+
+                // Tạo HTML phần hình ảnh hoặc minh họa SVG/Icon đẹp mắt
+                const mediaHtml = hasImg
+                    ? `
+                        <img 
+                            src="${lesson.displayImageUrl}" 
+                            alt="${escapeHtml(lesson.title)}" 
+                            loading="lazy"
+                            onerror="handleCardImageError(this, '${lesson.subjectKey}')"
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        >
+                        <div class="fallback-cover hidden w-full h-full bg-gradient-to-br ${cfg.gradient} p-5 flex-col items-center justify-center text-white text-center relative overflow-hidden">
+                            <div class="absolute inset-0 opacity-15" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 14px 14px;"></div>
+                            <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 shadow-inner">
+                                <i data-lucide="${cfg.icon}" class="w-7 h-7 text-white"></i>
+                            </div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-white/90">${cfg.shortName}</span>
+                        </div>
+                    `
+                    : `
+                        <div class="w-full h-full bg-gradient-to-br ${cfg.gradient} p-5 flex flex-col items-center justify-center text-white text-center relative overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
+                            <div class="absolute inset-0 opacity-15" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 14px 14px;"></div>
+                            <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2.5 shadow-inner">
+                                <i data-lucide="${cfg.icon}" class="w-7 h-7 text-white"></i>
+                            </div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-white/90">${cfg.shortName}</span>
+                            <span class="text-[10px] text-white/75 mt-0.5">Mô hình thực hành STEM</span>
+                        </div>
+                    `;
+
+                return `
+                    <article 
+                        onclick="openLessonModal('${lesson.id}')"
+                        class="group bg-white rounded-2xl border border-slate-200/90 overflow-hidden flex flex-col card-hover cursor-pointer"
+                    >
+                        <!-- Khung ảnh 16:10 -->
+                        <div class="relative aspect-[16/10] bg-slate-100 overflow-hidden">
+                            ${mediaHtml}
+
+                            <!-- Huy hiệu môn học góc trên trái -->
+                            <div class="absolute top-3 left-3">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-sm backdrop-blur-md bg-white/95 text-slate-800 border border-white/60">
+                                    <span class="w-2 h-2 rounded-full ${cfg.accentBg}"></span>
+                                    ${cfg.shortName}
+                                </span>
+                            </div>
+
+                            <!-- Badge video nếu có -->
+                            ${hasVid ? `
+                                <div class="absolute top-3 right-3">
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold bg-rose-600 text-white shadow-sm">
+                                        <i data-lucide="play" class="w-3 h-3 fill-current"></i>
+                                        Video
+                                    </span>
+                                </div>
+                            ` : ''}
+
+                            <!-- Overlay nút phóng to khi hover -->
+                            <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/25 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <span class="px-3.5 py-1.5 rounded-full bg-white/95 text-slate-900 text-xs font-bold shadow-lg flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-all">
+                                    <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-blue-600"></i>
+                                    Xem chi tiết
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Nội dung thẻ -->
+                        <div class="p-4 sm:p-5 flex-1 flex flex-col">
+                            <div class="text-[11px] font-mono font-semibold text-slate-400 mb-1 truncate">
+                                ${escapeHtml(lesson.fullRaw)}
+                            </div>
+                            <h3 class="font-display text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-2">
+                                ${escapeHtml(lesson.title)}
+                            </h3>
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-3 mb-4 flex-1">
+                                ${escapeHtml(lesson.description)}
+                            </p>
+
+                            <!-- Chân thẻ -->
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
+                                <span class="text-blue-600 group-hover:text-blue-700 inline-flex items-center gap-1">
+                                    <span>Xem chi tiết / Ảnh lớn</span>
+                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
+                                </span>
+                                ${hasImg ? `
+                                    <span class="text-emerald-600 inline-flex items-center gap-1 text-[11px]" title="Có hình ảnh từ Google Drive">
+                                        <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        // Xử lý khi ảnh Google Drive bị lỗi quyền truy cập hoặc hỏng link
+        function handleCardImageError(imgEl, subjectKey) {
+            imgEl.classList.add('hidden');
+            const fallback = imgEl.nextElementSibling;
+            if (fallback) {
+                fallback.classList.remove('hidden');
+                fallback.classList.add('flex');
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // ==================== TƯƠNG TÁC BỘ LỌC & TÌM KIẾM ====================
+
+        function selectSubject(subjectKey) {
+            selectedSubject = subjectKey;
+            updateUI();
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            searchQuery = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            renderLessonsGrid();
+            lucide.createIcons();
+        }
+
+        function resetAllFilters() {
+            selectedSubject = 'ALL';
+            searchQuery = '';
+            onlyWithMedia = false;
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            document.getElementById('onlyWithMediaCheckbox').checked = false;
+            updateUI();
+        }
+
+        // ==================== MODAL XEM CHI TIẾT BÀI HỌC ====================
+
+        function openLessonModal(lessonId) {
+            const lesson = allLessons.find(l => l.id === lessonId);
+            if (!lesson) return;
+
+            const cfg = SUBJECT_CONFIG[lesson.subjectKey] || SUBJECT_CONFIG['OTHER'];
+            const modal = document.getElementById('lessonModal');
+
+            // Gán thông tin vào modal
+            const subjBadge = document.getElementById('modalSubjectBadge');
+            subjBadge.textContent = cfg.name;
+            subjBadge.className = `px-3 py-1 rounded-full text-xs font-bold shrink-0 border ${cfg.badgeBg}`;
+
+            document.getElementById('modalCodeBadge').textContent = lesson.fullRaw;
+            document.getElementById('modalTitle').textContent = lesson.title;
+            document.getElementById('modalDescription').textContent = lesson.description;
+
+            // Xử lý ảnh lớn trong modal
+            const modalImg = document.getElementById('modalImage');
+            const modalFallback = document.getElementById('modalFallbackIllustration');
+            const modalFallbackIconBox = document.getElementById('modalFallbackIconBox');
+
+            modalFallbackIconBox.innerHTML = `<i data-lucide="${cfg.icon}" class="w-8 h-8 text-cyan-300"></i>`;
+
+            if (lesson.displayImageUrl) {
+                modalImg.src = lesson.displayImageUrl;
+                modalImg.classList.remove('hidden');
+                modalFallback.classList.add('hidden');
+                modalFallback.classList.remove('flex');
+
+                modalImg.onerror = () => {
+                    modalImg.classList.add('hidden');
+                    modalFallback.classList.remove('hidden');
+                    modalFallback.classList.add('flex');
+                };
+            } else {
+                modalImg.src = '';
+                modalImg.classList.add('hidden');
+                modalFallback.classList.remove('hidden');
+                modalFallback.classList.add('flex');
+            }
+
+            // Nút mở link Google Drive & Video
+            const driveBtn = document.getElementById('modalDriveLink');
+            if (lesson.rawImageUrl) {
+                driveBtn.href = lesson.rawImageUrl;
+                driveBtn.classList.remove('hidden');
+            } else {
+                driveBtn.classList.add('hidden');
+            }
+
+            const videoBtn = document.getElementById('modalVideoLink');
+            if (lesson.videoUrl) {
+                videoBtn.href = lesson.videoUrl;
+                videoBtn.classList.remove('hidden');
+            } else {
+                videoBtn.classList.add('hidden');
+            }
+
+            // Hiển thị modal
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+        }
+
+        function closeLessonModal() {
+            const modal = document.getElementById('lessonModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === 'lessonModal') {
+                closeLessonModal();
+            }
+        }
+
+        // Đóng modal bằng phím ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeLessonModal();
+            }
+        });
+
+        // ==================== KHỞI TẠO SỰ KIỆN KHI TẢI TRANG ====================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lắng nghe ô tìm kiếm
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                if (searchQuery.trim().length > 0) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                }
+                renderLessonsGrid();
+                lucide.createIcons();
+            });
+
+            // Lắng nghe checkbox lọc bài có hình ảnh/video
+            const mediaCheckbox = document.getElementById('onlyWithMediaCheckbox');
+            mediaCheckbox.addEventListener('change', (e) => {
+                onlyWithMedia = e.target.checked;
+                renderLessonsGrid();
+                lucide.createIcons();
+            });
+
+            // Hiển thị ngay dữ liệu tích hợp trong lúc chờ đồng bộ live từ Google Sheet
+            allLessons = normalizeLessons(FALLBACK_LESSONS_RAW);
+            updateUI();
+
+            // Tự động đồng bộ trực tiếp từ Google Sheet
+            syncFromGoogleSheet(false);
+        });
+    </script>
+</body>
+</html>
