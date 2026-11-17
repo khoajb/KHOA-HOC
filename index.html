@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome cho Icons kiểu chọn khóa học -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -112,34 +114,50 @@
     <!-- ==================== THANH ĐIỀU HƯỚNG MÔN HỌC & BỘ LỌC ==================== -->
     <div class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-            <!-- Đã sửa: Cho phép các nút môn học tự động xuống dòng gọn gàng, hiển thị đầy đủ 100% tên môn -->
-            <div id="subjectTabsContainer" class="flex flex-wrap items-center gap-2 pb-3 mb-3 border-b border-slate-100">
-                <!-- Render bằng JS -->
-            </div>
-
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="relative flex-1 max-w-md">
-                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        placeholder="Tìm kiếm tên bài học (VD: May bay, Sumo, Cat fly...)" 
-                        class="w-full pl-10 pr-9 py-2 bg-slate-100/80 hover:bg-slate-100 focus:bg-white border border-slate-200 focus:border-blue-500 rounded-xl text-sm text-slate-800 placeholder-slate-400 outline-none transition-all"
-                    >
-                    <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
-                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                    </button>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center pb-3 mb-3 border-b border-slate-100">
+                <!-- Dropdown chọn môn học theo đúng yêu cầu hình mẫu -->
+                <div class="md:col-span-4">
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                        <i class="fa-solid fa-graduation-cap me-1 text-primary"></i> CHỌN MÔN HỌC / KHÓA HỌC:
+                    </label>
+                    <div class="input-group flex items-center border border-slate-300 rounded-xl overflow-hidden bg-white shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                        <span class="bg-slate-50 px-3.5 py-2.5 text-slate-500 border-r border-slate-200 flex items-center justify-center">
+                            <i class="fa-solid fa-graduation-cap text-muted"></i>
+                        </span>
+                        <select id="subjectSelect" onchange="onSubjectSelectChange(this.value)" class="form-select w-full px-3 py-2.5 text-sm bg-transparent border-none outline-none text-slate-800 cursor-pointer">
+                            <!-- Render bằng JS -->
+                        </select>
+                    </div>
                 </div>
 
-                <div class="flex flex-wrap items-center justify-between sm:justify-end gap-3">
-                    <label class="inline-flex items-center gap-2 cursor-pointer select-none bg-slate-100 hover:bg-slate-200/70 px-3 py-2 rounded-xl transition-colors">
-                        <input type="checkbox" id="onlyWithMediaCheckbox" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer">
-                        <span class="text-xs sm:text-sm font-medium text-slate-700">Chỉ hiện bài có hình ảnh</span>
+                <!-- Ô tìm kiếm bài học -->
+                <div class="md:col-span-8">
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                        <i class="fa-solid fa-search me-1 text-primary"></i> TÌM KIẾM BÀI HỌC:
                     </label>
-
-                    <div class="text-xs sm:text-sm text-slate-500 font-medium">
-                        Hiển thị <span id="visibleCount" class="font-bold text-slate-900">0</span> bài học
+                    <div class="relative w-full">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Tìm kiếm tên bài học (VD: May bay, Sumo, Cat fly...)" 
+                            class="w-full pl-10 pr-9 py-2.5 bg-white border border-slate-300 focus:border-blue-500 rounded-xl text-sm text-slate-800 placeholder-slate-400 outline-none transition-all shadow-sm"
+                        >
+                        <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </button>
                     </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <label class="inline-flex items-center gap-2 cursor-pointer select-none bg-slate-100 hover:bg-slate-200/70 px-3 py-2 rounded-xl transition-colors">
+                    <input type="checkbox" id="onlyWithMediaCheckbox" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer">
+                    <span class="text-xs sm:text-sm font-medium text-slate-700">Chỉ hiện bài có hình ảnh</span>
+                </label>
+
+                <div class="text-xs sm:text-sm text-slate-500 font-medium">
+                    Hiển thị <span id="visibleCount" class="font-bold text-slate-900">0</span> bài học
                 </div>
             </div>
         </div>
@@ -516,7 +534,7 @@
 
         function updateUI() {
             updateStats();
-            renderSubjectTabs();
+            renderSubjectSelect();
             updateSubjectBanner();
             renderLessonsGrid();
             lucide.createIcons();
@@ -531,8 +549,8 @@
             document.getElementById('statMediaLessons').textContent = mediaCount;
         }
 
-        function renderSubjectTabs() {
-            const container = document.getElementById('subjectTabsContainer');
+        function renderSubjectSelect() {
+            const selectEl = document.getElementById('subjectSelect');
             const counts = { ALL: allLessons.length };
             allLessons.forEach(l => { counts[l.subjectKey] = (counts[l.subjectKey] || 0) + 1; });
 
@@ -540,20 +558,20 @@
             const existingKeys = Object.keys(counts).filter(k => k !== 'ALL');
             const sortedKeys = ['ALL', ...preferredOrder.filter(k => k !== 'ALL' && existingKeys.includes(k)), ...existingKeys.filter(k => !preferredOrder.includes(k))];
 
-            container.innerHTML = sortedKeys.map(key => {
-                const isActive = selectedSubject === key;
+            selectEl.innerHTML = sortedKeys.map(key => {
                 const count = counts[key] || 0;
-                const label = key === 'ALL' ? 'Tất cả môn học' : (SUBJECT_CONFIG[key]?.shortName || key);
-                const iconName = key === 'ALL' ? 'layout-grid' : (SUBJECT_CONFIG[key]?.icon || 'folder');
-
-                return `
-                    <button onclick="selectSubject('${key}')" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${isActive ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200'}">
-                        <i data-lucide="${iconName}" class="w-4 h-4 ${isActive ? 'text-cyan-300' : 'text-slate-500'}"></i>
-                        <span>${label}</span>
-                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-white text-slate-600 border border-slate-200'}">${count}</span>
-                    </button>
-                `;
+                const label = key === 'ALL' ? `-- Tất cả môn học (${count}) --` : `${SUBJECT_CONFIG[key]?.name || key} (${count})_`;
+                const cleanLabel = label.replace('_', '');
+                const isSelected = selectedSubject === key ? 'selected' : '';
+                return `<option value="${key}" ${isSelected}>${cleanLabel}</option>`;
             }).join('');
+        }
+
+        function onSubjectSelectChange(val) {
+            selectedSubject = val;
+            updateSubjectBanner();
+            renderLessonsGrid();
+            lucide.createIcons();
         }
 
         function updateSubjectBanner() {
@@ -658,7 +676,6 @@
             return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
-        function selectSubject(key) { selectedSubject = key; updateUI(); }
         function clearSearch() {
             document.getElementById('searchInput').value = '';
             searchQuery = '';
@@ -670,6 +687,7 @@
             selectedSubject = 'ALL';
             searchQuery = '';
             onlyWithMedia = false;
+            document.getElementById('subjectSelect').value = 'ALL';
             document.getElementById('searchInput').value = '';
             document.getElementById('clearSearchBtn').classList.add('hidden');
             document.getElementById('onlyWithMediaCheckbox').checked = false;
